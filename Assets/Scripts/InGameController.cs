@@ -11,6 +11,7 @@ public class InGameController : MonoBehaviour
     [SerializeField] private List<MeshRenderer> keywordsMeshRenderers = new List<MeshRenderer>();
     [SerializeField] private List<Material> keywordsMaterials = new List<Material>();
     [SerializeField] private OVRPlayerController ovrPlayerController;
+    [SerializeField] private NetworkStarter networkStarter;
     private float _time = 4f;
     private bool _isStartBtn;
     private int _indexExperiment;
@@ -19,11 +20,13 @@ public class InGameController : MonoBehaviour
     private float _firstAcceleration;
     private void Start()
     {
-        OVRManager.display.RecenterPose();
+
         _firstAcceleration = ovrPlayerController.Acceleration;
         ovrPlayerController.Acceleration = 0f;
-        _indexExperiment = int.Parse(NetworkStarter.instance.experimentIndex);
+      _indexExperiment = int.Parse(NetworkStarter.instance.experimentIndex);
+       
         InitializeExperimentState(_indexExperiment);
+       
     }
 
     public void StartGameBtn()

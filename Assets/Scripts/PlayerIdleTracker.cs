@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO; // Dosya işlemleri için gerekli.
 using UnityEngine;
 
@@ -12,7 +13,7 @@ public class PlayerIdleTracker : MonoBehaviour
     private float idleTime = 0f; // Şu anki duraksama süresi.
     private float totalIdleTime = 0f; // Toplam duraksama süresi.
     private bool isIdle = false; // Oyuncu duraksıyor mu?
-
+    private int idleTimeCount;
     void Start()
     {
         // İlk pozisyonu kaydet.
@@ -49,8 +50,9 @@ public class PlayerIdleTracker : MonoBehaviour
 
                 // Toplam duraksama süresine ekle.
                 totalIdleTime += idleTime;
-
-
+                if (idleTime >= 3)
+                    idleTimeCount++;
+               
                 Debug.Log($"Player duraksamayı bitirdi. Bu duraksama süresi: {idleTime} saniye.");
             }
 
@@ -65,8 +67,14 @@ public class PlayerIdleTracker : MonoBehaviour
 
     public string ReturnTotalIdleTime()
     {
-        // Toplam duraksama süresini rapora ekle.
+      
         string totalEntry = totalIdleTime.ToString("F2");
         return totalEntry;
     }
+
+    public string IdleTimeCount()
+    {
+        return idleTimeCount.ToString();
+    }
+
 }

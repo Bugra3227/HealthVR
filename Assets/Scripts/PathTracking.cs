@@ -21,11 +21,10 @@ public class PathTracking : MonoBehaviour
     private Vector3 _startPosition; // Başlangıç pozisyonu
     private Vector3 _lastPosition; // Başlangıç pozisyonu
     private float _totalDistanceTraveled = 0f; // Toplam mesafe
-  
-  
-  
-    public bool isReachedGoal;
 
+
+    public bool isReachedGoal;
+    public UnityClients unityClients;
 
     public string time;
     public string wrongCount;
@@ -43,7 +42,6 @@ public class PathTracking : MonoBehaviour
         _startTime = Time.time; // Zaman ölçümüne başla
         _startPosition = user.position; // Başlangıç pozisyonunu kaydet
         _hasStarted = true;
-      
     }
 
     void Update()
@@ -58,10 +56,8 @@ public class PathTracking : MonoBehaviour
         float distanceTraveled = Vector3.Distance(_startPosition, user.position);
         _totalDistanceTraveled = distanceTraveled;
         Debug.Log("Yol alınan mesafe: " + _totalDistanceTraveled.ToString("F2") + " metre");
-        
     }
 
-  
 
     public void IncreaseWrongPathCount()
     {
@@ -72,30 +68,26 @@ public class PathTracking : MonoBehaviour
     {
         _correctPathCount++;
     }
-    
+
     public void ReachedGoal()
     {
         if (isReachedGoal)
             return;
+
+
         isReachedGoal = true;
         _hasStarted = false;
 
         float totalTime = Time.time - _startTime;
 
-        RequestData requestData = new RequestData
-        {
-            time = totalTime.ToString("F2"),
-            wrongCount = _wrongPathCount.ToString(),
-            correctCount = _correctPathCount.ToString(),
-            distance = _totalDistanceTraveled.ToString("F2"),
-            stopTime = playerIdleTracker.ReturnTotalIdleTime(),
-        };
 
-        string jsonData = JsonUtility.ToJson(requestData);
-        
-        Debug.Log("Gönderilen JSON: " + jsonData);
-
-       
+        time = totalTime.ToString("F2");
+        wrongCount = _wrongPathCount.ToString();
+        correctCount = _correctPathCount.ToString();
+        distance = _totalDistanceTraveled.ToString("F2");
+        stopTime = playerIdleTracker.ReturnTotalIdleTime();
+         string idleTime = playerIdleTracker.IdleTimeCount();
+        unityClients.SendFinishRequest(time,wrongCount,correctCount,distance,stopTime,idleTime);
     }
 
     public string GetJsonData()
@@ -108,6 +100,7 @@ public class PathTracking : MonoBehaviour
             correctCount = _correctPathCount.ToString(),
             distance = _totalDistanceTraveled.ToString("F2"),
             stopTime = playerIdleTracker.ReturnTotalIdleTime(),
+            idleTime = "1",
         };
 
         string jsonData = JsonUtility.ToJson(requestData);
@@ -122,5 +115,6 @@ public class PathTracking : MonoBehaviour
         public string correctCount;
         public string distance;
         public string stopTime;
+        public string idleTime;
     }
 }

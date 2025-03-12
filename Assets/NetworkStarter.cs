@@ -12,6 +12,7 @@ public class NetworkStarter : MonoBehaviour
     private HttpListener _httpListener;
     public string experimentIndex;
     public string _serverURL;
+    public string _androidIpAdress;
 
     private void Awake()
     {
@@ -41,6 +42,7 @@ public class NetworkStarter : MonoBehaviour
         _httpListener.Start();
         _httpListener.BeginGetContext(HandleRequest, null);
         Debug.Log("HTTP server started on port 8383");
+        //SendFinishRequest();
     }
      
      
@@ -64,7 +66,7 @@ public class NetworkStarter : MonoBehaviour
             }
             else if (request.HttpMethod == "POST" && request.Url.AbsolutePath == "/finish_data")
             {
-                HandleGetRequest(response);
+              
             }
             else
             {
@@ -92,7 +94,8 @@ public class NetworkStarter : MonoBehaviour
 
             experimentIndex = requestData.value1;
             _serverURL = requestData.value2;
-
+            _androidIpAdress = requestData.value3;
+            
             // İlgili sahneye yönlendirme
             StartSceneBasedOnIndex();
         }
@@ -123,21 +126,17 @@ public class NetworkStarter : MonoBehaviour
         // Sahneyi başlatma
         SceneManager.LoadScene("Scenes/MainScene");
     }
-    public void SendPostToClient(string datas)
+    public void SendFinishRequest()
     {
-       
-
         try
         {
-            // JSON'a dönüştür
-            string jsonData = JsonUtility.ToJson(datas);
-
-            var request = (HttpWebRequest)WebRequest.Create($"http://{_serverURL}:8383/send_data");
+            var request = (HttpWebRequest)WebRequest.Create("http://localhost:8080/finish_data");
             request.Method = "POST";
             request.ContentType = "application/json";
 
             using (var streamWriter = new StreamWriter(request.GetRequestStream()))
             {
+                string jsonData = "{\"message\": \"Finish request triggered\"}";
                 streamWriter.Write(jsonData);
             }
 
@@ -145,15 +144,16 @@ public class NetworkStarter : MonoBehaviour
             using (var streamReader = new StreamReader(response.GetResponseStream()))
             {
                 var result = streamReader.ReadToEnd();
-                Debug.Log("Response from Client: " + result);
+                Debug.Log("Finish Request Response: " + result);
             }
         }
         catch (Exception ex)
         {
-            Debug.LogError("................Bugrahan........................................................................................Error sending POST request: " + ex.Message);
+            Debug.LogError("Error sending finish request: " + ex.Message);
         }
-
     }
+
+   
 
 
     void OnApplicationQuit()
