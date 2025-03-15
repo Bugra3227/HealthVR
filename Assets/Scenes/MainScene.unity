@@ -25276,11 +25276,12 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  user: {fileID: 123312776}
+  user: {fileID: 1594946689}
   correctPathThreshold: 1
   inactivityThreshold: 0.5
   isReachedGoal: 0
   unityClients: {fileID: 898595668}
+  distanceTExt: {fileID: 0}
   time: 
   wrongCount: 
   correctCount: 

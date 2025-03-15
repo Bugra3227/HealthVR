@@ -25,13 +25,13 @@ public class PathTracking : MonoBehaviour
 
     public bool isReachedGoal;
     public UnityClients unityClients;
-
+  
     public string time;
     public string wrongCount;
     public string correctCount;
     public string distance;
     public string stopTime;
-
+    private float _movementThreshold = 0.01f;
     private void Awake()
     {
         instance = this;
@@ -41,21 +41,34 @@ public class PathTracking : MonoBehaviour
     {
         _startTime = Time.time; // Zaman ölçümüne başla
         _startPosition = user.position; // Başlangıç pozisyonunu kaydet
+        _lastPosition = user.position;
         _hasStarted = true;
     }
 
     void Update()
     {
+      
         if (!_hasStarted) return;
 
 // Kullanıcının yolculuk süresini güncelle
         float elapsedTime = Time.time - _startTime;
         Debug.Log("Geçen süre: " + elapsedTime.ToString("F2") + " saniye");
 
-// Kullanıcının aldığı mesafeyi güncelle
-        float distanceTraveled = Vector3.Distance(_startPosition, user.position);
-        _totalDistanceTraveled = distanceTraveled;
-        Debug.Log("Yol alınan mesafe: " + _totalDistanceTraveled.ToString("F2") + " metre");
+        // Hareket miktarını hesapla
+        float distanceTraveled = Vector3.Distance(_lastPosition, user.position);
+
+        // Eğer mesafe belirli bir eşiğin üzerindeyse (yani gerçekten hareket ettiyse) ekle
+        if (distanceTraveled > _movementThreshold)
+        {
+            _totalDistanceTraveled += distanceTraveled;
+            _lastPosition = user.position; // Son konumu güncelle
+        }
+
+        
+      
+
+        // Debug log
+        Debug.Log("Toplam alınan mesafe: " + _totalDistanceTraveled.ToString("F2") + " metre");
     }
 
 
