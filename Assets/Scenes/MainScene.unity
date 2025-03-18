@@ -25281,7 +25281,6 @@ MonoBehaviour:
   inactivityThreshold: 0.5
   isReachedGoal: 0
   unityClients: {fileID: 898595668}
-  distanceTExt: {fileID: 0}
   time: 
   wrongCount: 
   correctCount: 
