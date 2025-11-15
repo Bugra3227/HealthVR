@@ -1,80 +1,84 @@
-using System.Collections.Generic;
-using System.IO; // Dosya işlemleri için gerekli.
 using UnityEngine;
 
+/// <summary>
+/// Tracks how long the player stays idle (not moving) during the VR session.
+/// Counts both total idle time and the number of idle events longer than 3 seconds.
+/// </summary>
 public class PlayerIdleTracker : MonoBehaviour
 {
-    public PathTracking pathTracking;
-    public Transform playerHead; // OVRCameraRig'in CenterEyeAnchor veya benzeri baş pozisyonu.
-    public float idleThreshold = 0.01f; // Hareket algılama eşiği.
+    [Header("References")]
+    [SerializeField] private PathTracking _pathTracking;
+    [SerializeField] private Transform _playerHead;  // Usually CenterEyeAnchor in VR
 
+    [Header("Settings")]
+    [SerializeField] private float _idleThreshold = 0.01f; // Movement threshold
 
-    private Vector3 lastPosition; // Oyuncunun bir önceki pozisyonu.
-    private float idleTime = 0f; // Şu anki duraksama süresi.
-    private float totalIdleTime = 0f; // Toplam duraksama süresi.
-    private bool isIdle = false; // Oyuncu duraksıyor mu?
-    private int idleTimeCount;
-    void Start()
+    // Internal state
+    private Vector3 _lastPosition;
+    private float _currentIdleTime = 0f;
+    private float _totalIdleTime = 0f;
+    private bool _isIdle = false;
+    private int _idleEventCount = 0;
+
+    private void Start()
     {
-        // İlk pozisyonu kaydet.
-        lastPosition = playerHead.position;
+        _lastPosition = _playerHead.position;
     }
 
-    void Update()
+    private void Update()
     {
-        if (!pathTracking.HasStarted)
+        if (!_pathTracking.HasStarted)
             return;
-        // Oyuncunun mevcut pozisyonunu al.
-        Vector3 currentPosition = playerHead.position;
 
-        // Hareket miktarını hesapla.
-        float movement = Vector3.Distance(currentPosition, lastPosition);
+        Vector3 currentPosition = _playerHead.position;
+        float movement = Vector3.Distance(currentPosition, _lastPosition);
 
-        // Eğer hareket eşiğin altındaysa oyuncu duraksıyor.
-        if (movement < idleThreshold)
+        // Player is idle (not moving)
+        if (movement < _idleThreshold)
         {
-            if (!isIdle)
+            if (!_isIdle)
             {
-                isIdle = true;
-                Debug.Log("Player duraksamaya başladı.");
+                _isIdle = true;
+                // Debug.Log("Player started idling.");
             }
 
-            // Duraksama süresini artır.
-            idleTime += Time.deltaTime;
+            _currentIdleTime += Time.deltaTime;
         }
         else
         {
-            if (isIdle)
+            // Player stops idling
+            if (_isIdle)
             {
-                isIdle = false;
+                _isIdle = false;
 
-                // Toplam duraksama süresine ekle.
-                totalIdleTime += idleTime;
-                if (idleTime >= 3)
-                    idleTimeCount++;
-               
-                Debug.Log($"Player duraksamayı bitirdi. Bu duraksama süresi: {idleTime} saniye.");
+                _totalIdleTime += _currentIdleTime;
+
+                // Count idle events longer than 3 seconds
+                if (_currentIdleTime >= 3f)
+                    _idleEventCount++;
+
+                // Debug.Log($"Idle ended. Duration: {_currentIdleTime:F2} seconds");
             }
 
-            // Duraksama süresini sıfırla.
-            idleTime = 0f;
+            _currentIdleTime = 0f;
         }
 
-        // Mevcut pozisyonu bir sonraki çerçeve için kaydet.
-        lastPosition = currentPosition;
+        _lastPosition = currentPosition;
     }
 
-
+    /// <summary>
+    /// Returns the total amount of time the player stayed idle (in seconds).
+    /// </summary>
     public string ReturnTotalIdleTime()
     {
-      
-        string totalEntry = totalIdleTime.ToString("F2");
-        return totalEntry;
+        return _totalIdleTime.ToString("F2");
     }
 
+    /// <summary>
+    /// Returns how many idle events were longer than 3 seconds.
+    /// </summary>
     public string IdleTimeCount()
     {
-        return idleTimeCount.ToString();
+        return _idleEventCount.ToString();
     }
-
 }
