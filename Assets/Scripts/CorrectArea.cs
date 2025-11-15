@@ -13,7 +13,7 @@ public class CorrectArea : MonoBehaviour
 
     private void Start()
     {
-        _pathTracking=PathTracking.instance;
+        _pathTracking=PathTracking.Instance;
     }
 
     private void OnTriggerEnter(Collider other)
