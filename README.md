@@ -59,7 +59,26 @@ I was responsible for:
 - Integrating the logic to randomly choose a color at the start of the session
 
 ---
+📱 Mobile-Controlled Session Start (Phone → VR Start)
 
+The VR session is started directly from a mobile device.
+The person testing the system uses a phone application to:
+
+Start the VR experience remotely,
+
+Select the color that will be used in the experiment,
+
+Trigger the beginning of the tracking session.
+
+Once the color is selected on the phone, the VR application automatically:
+
+Loads the selected color,
+
+Shows the color markers along the path,
+
+Begins tracking the user’s movement and decisions.
+
+This allows easy testing without needing to wear the headset to set parameters.
 ## ⚠️ Disclaimer
 
 This project was developed for a specific VR use case and is intended **only as a portfolio / demo project**.  
