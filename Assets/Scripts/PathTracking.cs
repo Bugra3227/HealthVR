@@ -1,13 +1,26 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// Tracks the player's movement and path quality in the VR color-following experiment.
+/// Collects metrics such as time, distance, wrong/correct path decisions and idle durations,
+/// and sends them to an external client at the end of the session.
+/// </summary>
 public class PathTracking : MonoBehaviour
 {
-    // Singleton (isteğe bağlı, kullanıyorsan kalsın)
+    /// <summary>
+    /// Optional singleton reference for easy access from other components.
+    /// </summary>
     public static PathTracking Instance { get; private set; }
     
-    // Public read-only property
+    /// <summary>
+    /// True while tracking is active and the session has started.
+    /// </summary>
     public bool HasStarted => _hasStarted;
+    
+    /// <summary>
+    /// True after the goal has been reached and tracking has stopped.
+    /// </summary>
     public bool IsGoalReached => _isGoalReached;
 
     [Header("References")]
@@ -25,7 +38,7 @@ public class PathTracking : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private bool _enableDebugLogs = false;
 
-    // State
+    // State fields
     private float _startTime;
     private bool _hasStarted;
     private bool _isGoalReached;
@@ -36,7 +49,7 @@ public class PathTracking : MonoBehaviour
     private Vector3 _lastPosition;
     private float _totalDistanceTraveled;
 
-    // Sonuçlar için sadece okunabilir propertiler (UI vs. için kullanılabilir)
+    // Read-only result values (for UI, logging or external usage)
     public string TimeText { get; private set; }
     public string WrongCountText { get; private set; }
     public string CorrectCountText { get; private set; }
@@ -73,14 +86,18 @@ public class PathTracking : MonoBehaviour
 
         UpdateElapsedTime();
         UpdateDistance();
-        // Eğer doğru/yanlış yol tespitini de buraya eklersen,
-        // buradan _correctPathCount ve _wrongPathCount arttırılabilir.
+        // If path correctness logic is added in the future,
+        // this is where correct/wrong path counters can be updated.
     }
 
     #endregion
 
     #region Public API
 
+    /// <summary>
+    /// Initializes and starts tracking the player's movement for the current session.
+    /// Resets time, distance and path counters.
+    /// </summary>
     public void StartTracking()
     {
         if (_user == null)
@@ -105,16 +122,28 @@ public class PathTracking : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Increases the wrong path counter. 
+    /// Call this when the user follows an incorrect color or direction.
+    /// </summary>
     public void IncreaseWrongPathCount()
     {
         _wrongPathCount++;
     }
 
+    /// <summary>
+    /// Increases the correct path counter.
+    /// Call this when the user makes a correct decision on the path.
+    /// </summary>
     public void IncreaseCorrectPathCount()
     {
         _correctPathCount++;
     }
 
+    /// <summary>
+    /// Stops tracking and finalizes the session when the goal is reached.
+    /// Calculates all metrics and sends them to the UnityClients endpoint.
+    /// </summary>
     public void ReachedGoal()
     {
         if (_isGoalReached || !_hasStarted)
@@ -154,18 +183,22 @@ public class PathTracking : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Builds a JSON payload containing the current session metrics.
+    /// Can be used for logging, debugging or sending data to external endpoints.
+    /// </summary>
     public string GetJsonData()
     {
         float totalTime = Time.time - _startTime;
 
         var requestData = new RequestData
         {
-            time       = totalTime.ToString("F2"),
-            wrongCount = _wrongPathCount.ToString(),
+            time         = totalTime.ToString("F2"),
+            wrongCount   = _wrongPathCount.ToString(),
             correctCount = _correctPathCount.ToString(),
-            distance   = _totalDistanceTraveled.ToString("F2"),
-            stopTime   = _playerIdleTracker != null ? _playerIdleTracker.ReturnTotalIdleTime() : "0",
-            idleTime   = _playerIdleTracker != null ? _playerIdleTracker.IdleTimeCount() : "0"
+            distance     = _totalDistanceTraveled.ToString("F2"),
+            stopTime     = _playerIdleTracker != null ? _playerIdleTracker.ReturnTotalIdleTime() : "0",
+            idleTime     = _playerIdleTracker != null ? _playerIdleTracker.IdleTimeCount() : "0"
         };
 
         return JsonUtility.ToJson(requestData);
@@ -175,6 +208,9 @@ public class PathTracking : MonoBehaviour
 
     #region Internal Logic
 
+    /// <summary>
+    /// Logs elapsed time while tracking is active (only when debug logs are enabled).
+    /// </summary>
     private void UpdateElapsedTime()
     {
         if (!_enableDebugLogs)
@@ -184,6 +220,10 @@ public class PathTracking : MonoBehaviour
         Debug.Log($"Elapsed time: {elapsedTime:F2} seconds");
     }
 
+    /// <summary>
+    /// Accumulates the distance traveled by the user if the movement 
+    /// exceeds the defined movement threshold.
+    /// </summary>
     private void UpdateDistance()
     {
         if (_user == null)
