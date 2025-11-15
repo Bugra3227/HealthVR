@@ -1,56 +1,59 @@
-using System;
+using System.Collections;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
-using System.Collections;
-using TMPro;
-using System.Text;
-using UnityEngine.Serialization;
 
+/// <summary>
+/// Sends experiment result data to a backend server as a JSON payload.
+/// </summary>
 public class SendRequestData : MonoBehaviour
 {
-    private string serverUrl;
-   
+    // Server endpoint for receiving the experiment data.
+    // In a production setup this could come from a config or NetworkStarter.
+    [SerializeField] private string _serverUrl = "http://192.168.1.3:8383/get_data";
 
-   
-
-    public void SendRequestAllData(string time, string wrongCount, string correctCount, string distance,
-        string stopingTime)
+    /// <summary>
+    /// Public entry point to send all result values to the server.
+    /// </summary>
+    public void SendRequestAllData(string time, string wrongCount, string correctCount, string distance, string stoppingTime)
     {
-        // serverUrl = $"http://{NetworkStarter.instance._serverURL}:8080/get_data";
-        serverUrl = "http://192.168.1.3:8383/get_data";
-        
-        StartCoroutine(SendStringRequest(time, wrongCount, correctCount, distance, stopingTime));
+        StartCoroutine(SendStringRequest(time, wrongCount, correctCount, distance, stoppingTime));
     }
 
-    public IEnumerator SendStringRequest(string value1, string value2, string value3, string value4, string value5)
+    /// <summary>
+    /// Builds a JSON body from the given values and posts it to the configured server URL.
+    /// </summary>
+    private IEnumerator SendStringRequest(string value1, string value2, string value3, string value4, string value5)
     {
-        // JSON formatında veri oluştur
-        RequestData requestData = new RequestData(value1, value2, value3, value4, value5);
-        string json = JsonUtility.ToJson(requestData); // JSON formatında veri oluştur
+        // Build JSON payload
+        var requestData = new RequestData(value1, value2, value3, value4, value5);
+        string json = JsonUtility.ToJson(requestData);
 
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(json); // JSON verisini byte dizisine dönüştür
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
 
-        UnityWebRequest request = new UnityWebRequest(serverUrl, "POST");
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-        request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Content-Type", "application/json"); // Content-Type olarak JSON gönderiyoruz
-        
-        yield return request.SendWebRequest(); // Veriyi gönder
-
-        if (request.result == UnityWebRequest.Result.ConnectionError ||
-            request.result == UnityWebRequest.Result.ProtocolError)
+        using (UnityWebRequest request = new UnityWebRequest(_serverUrl, UnityWebRequest.kHttpVerbPOST))
         {
-           
-            Debug.LogError("Error: " + request.error);
-        }
-        else
-        {
-           
-            Debug.Log("Request sent successfully: " + request.downloadHandler.text);
+            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.ConnectionError ||
+                request.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError("SendRequestData - Error: " + request.error);
+            }
+            else
+            {
+                Debug.Log("SendRequestData - Request sent successfully: " + request.downloadHandler.text);
+            }
         }
     }
 
-    // JSON verisi için sınıf
+    /// <summary>
+    /// Serializable container for the experiment data to be sent as JSON.
+    /// </summary>
     [System.Serializable]
     public class RequestData
     {
@@ -62,11 +65,11 @@ public class SendRequestData : MonoBehaviour
 
         public RequestData(string value1, string value2, string value3, string value4, string value5)
         {
-            this.time = value1;
-            this.wrongCount = value2;
-            this.correctCount = value3;
-            this.distance = value4;
-            this.stoppingTime = value5;
+            time         = value1;
+            wrongCount   = value2;
+            correctCount = value3;
+            distance     = value4;
+            stoppingTime = value5;
         }
     }
 }
